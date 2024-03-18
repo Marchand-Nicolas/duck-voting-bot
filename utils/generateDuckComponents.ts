@@ -24,7 +24,6 @@ const generateDuckComponents = (
     const { head } = getEmojiPairByDuckName(client, duck.name);
     const button = new ButtonBuilder()
       .setCustomId(`vote:${duck.name}:${scheduledVoteId}`)
-      .setLabel(duck.title)
       .setEmoji(head)
       .setStyle(ButtonStyle.Secondary);
     row.addComponents(button);
