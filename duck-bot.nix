@@ -1,5 +1,5 @@
 { pkgs, ... }: {
-  systemd.services.duck_bot = {
+  systemd.services.duck_vote = {
     description = "PROGRAMMESWAG";
     after = [ "network.target" ];
 
