@@ -27,7 +27,7 @@ const generateMessageBody = async (
       winner.votes = duckVotes.length;
     }
     const part = duckVotes.length / (total || 1);
-    const emojiPair = getEmojiPairByDuckName(
+    const emojiPair = await getEmojiPairByDuckName(
       client,
       convertDuckNameToId(duckName)
     );

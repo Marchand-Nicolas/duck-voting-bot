@@ -1,11 +1,16 @@
 import { Client } from "discord.js";
 
-const getAvailableEmojis = (client: Client) => {
+const getAvailableEmojis = async (client: Client) => {
   const emojiGuildId = process.env.EMOJI_GUILD_ID;
   if (!emojiGuildId) return [];
-  const guild = client.guilds.cache.get(emojiGuildId);
-  if (!guild) return [];
-  const emojis = guild.emojis.cache.map((emoji) => emoji.toString());
+  const fetchedGuild = await client.guilds.fetch(emojiGuildId);
+  if (!fetchedGuild) return [];
+  const rowEmojis = await fetchedGuild.emojis.fetch();
+  const emojis =
+    rowEmojis.map(
+      (emoji) => `<${emoji.animated ? "a" : ""}:${emoji.name}:${emoji.id}>`
+    ) || ``;
+  console.log(emojis);
   return emojis;
 };
 

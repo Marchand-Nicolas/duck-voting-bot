@@ -1,4 +1,4 @@
-import { Client, Interaction, REST, Routes } from "discord.js";
+import { Client, Interaction, Partials, REST, Routes } from "discord.js";
 import * as fs from "fs";
 import startCron from "./cron";
 import path from "path";
@@ -18,7 +18,8 @@ if (!clientId) {
 }
 
 const client = new Client({
-  intents: ["Guilds", "GuildMessages"],
+  intents: ["Guilds", "GuildMessages", "GuildEmojisAndStickers"],
+  partials: [Partials.Reaction, Partials.Message],
 });
 client.login(token);
 

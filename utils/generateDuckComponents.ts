@@ -7,7 +7,7 @@ import {
 import { Duck } from "types/duck";
 import getEmojiPairByDuckName from "./getEmojiPairByDuckName";
 
-const generateDuckComponents = (
+const generateDuckComponents = async (
   client: Client,
   ducks: Duck[],
   scheduledVoteId: number | string
@@ -21,7 +21,7 @@ const generateDuckComponents = (
     }
     const row = rows[rowId];
     const duck = ducks[index];
-    const { head } = getEmojiPairByDuckName(client, duck.name);
+    const { head } = await getEmojiPairByDuckName(client, duck.name);
     const button = new ButtonBuilder()
       .setCustomId(`vote:${duck.name}:${scheduledVoteId}`)
       .setEmoji(head)

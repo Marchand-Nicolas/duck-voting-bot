@@ -2,8 +2,8 @@ import { Client } from "discord.js";
 import getAvailableEmojis from "./getAvailableEmojis";
 import convertDuckNameToId from "./convertDuckNameToId";
 
-const getEmojiPairByDuckName = (client: Client, duckName: string) => {
-  const emojis = getAvailableEmojis(client);
+const getEmojiPairByDuckName = async (client: Client, duckName: string) => {
+  const emojis = await getAvailableEmojis(client);
   const head = emojis.find(
     (emoji) => emoji.split(":")[1] === convertDuckNameToId(duckName)
   );

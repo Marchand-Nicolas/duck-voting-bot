@@ -53,11 +53,11 @@ const refreshMessage = async (client: Client, voteId: number | string) => {
   const duckImage = scheduledVote.image as string;
   const message = messageId ? await channel.messages.fetch(messageId) : null;
 
-  const components = generateDuckComponents(
+  const components = (await generateDuckComponents(
     client,
     getDucks(scheduledVote.ducks),
     voteId
-  ) as any;
+  )) as any;
 
   if (message) db.end();
   if (message)
