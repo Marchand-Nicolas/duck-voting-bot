@@ -10,7 +10,6 @@ const getAvailableEmojis = async (client: Client) => {
     rowEmojis.map(
       (emoji) => `<${emoji.animated ? "a" : ""}:${emoji.name}:${emoji.id}>`
     ) || ``;
-  console.log(emojis);
   return emojis;
 };
 
