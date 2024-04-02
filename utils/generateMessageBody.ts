@@ -13,7 +13,7 @@ const generateMessageBody = async (
 ) => {
   const ducks = getDucks(scheduledVote.ducks);
   let messageBody = "";
-  const total = votes.length;
+  const total = getVoteAmount(votes, votes);
   const winner = {
     name: "",
     votes: -1,
@@ -22,11 +22,12 @@ const generateMessageBody = async (
     const duck = ducks[index];
     const duckName = capitalize(duck.title);
     const duckVotes = getDuckVotes(votes, convertDuckNameToId(duckName));
-    if (duckVotes.length > winner.votes) {
+    const voteAmount = getVoteAmount(duckVotes, votes);
+    if (voteAmount > winner.votes) {
       winner.name = duckName;
-      winner.votes = duckVotes.length;
+      winner.votes = voteAmount;
     }
-    const part = duckVotes.length / (total || 1);
+    const part = voteAmount / (total || 1);
     const emojiPair = await getEmojiPairByDuckName(
       client,
       convertDuckNameToId(duckName)
@@ -50,4 +51,15 @@ const newLine = (line: string) => {
 
 const getDuckVotes = (votes: Vote[], duckName: string) => {
   return votes.filter((vote) => vote.duck_name === duckName);
+};
+
+const getVoteAmount = (duckVotes: Vote[], votes: Vote[]) => {
+  // If a user has voted for multiple ducks, we need to divide the total votes by the amount of ducks they voted for
+  // We return the amount of votes for a specific duck
+  let total = 0;
+  duckVotes.forEach((vote) => {
+    const userVotes = votes.filter((v) => v.user_id === vote.user_id);
+    total += 1 / userVotes.length;
+  });
+  return total;
 };

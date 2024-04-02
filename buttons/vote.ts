@@ -22,10 +22,18 @@ const vote = async (interaction: ButtonInteraction) => {
       ephemeral: true,
     });
   }
-  await db.execute(
-    "DELETE FROM votes WHERE scheduled_vote_id = ? AND user_id = ?",
-    [scheduledVoteId, interaction.user.id]
+  const res = await db.execute(
+    "DELETE FROM votes WHERE scheduled_vote_id = ? AND user_id = ? AND duck_name = ?",
+    [scheduledVoteId, interaction.user.id, duckName]
   );
+  if ((res[0] as any).affectedRows > 0) {
+    await db.end();
+    refreshMessage(interaction.client, scheduledVoteId);
+    return interaction.reply({
+      content: `❌ Removed vote for ${duckName}`,
+      ephemeral: true,
+    });
+  }
   await db.execute(
     "INSERT INTO votes (scheduled_vote_id, user_id, duck_name) VALUES (?, ?, ?)",
     [scheduledVoteId, interaction.user.id, duckName]
@@ -35,7 +43,7 @@ const vote = async (interaction: ButtonInteraction) => {
   refreshMessage(interaction.client, scheduledVoteId);
 
   await interaction.reply({
-    content: "✅ Voted!",
+    content: `✅ Voted for ${duckName}. You can vote for another duck if you want, or remove your vote by clicking the button again.`,
     ephemeral: true,
   });
 };
