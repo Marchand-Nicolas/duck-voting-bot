@@ -2,6 +2,8 @@ import { ButtonInteraction } from "discord.js";
 import getDbOptions from "../utils/getDbOptions";
 import { createConnection } from "mysql2/promise";
 import refreshMessage from "../utils/refreshMessage";
+import generateMessageBody from "../utils/generateMessageBody";
+import capitalize from "../utils/capitalize";
 
 const vote = async (interaction: ButtonInteraction) => {
   const interactionId = interaction.customId;
@@ -16,9 +18,20 @@ const vote = async (interaction: ButtonInteraction) => {
   if (!scheduledVote) return db.end();
   const ended = scheduledVote.ended;
   if (ended) {
+    const [rows2] = await db.execute(
+      "SELECT * FROM votes WHERE scheduled_vote_id = ?",
+      [scheduledVoteId]
+    );
+    if (!Array.isArray(rows2)) return db.end();
+    const votes = rows2 as any[];
     await db.end();
+    const { winner } = await generateMessageBody(
+      interaction.client,
+      scheduledVote,
+      votes
+    );
     return interaction.reply({
-      content: "❌ Voting has ended for this duck.",
+      content: `Vote is over, ${winner.name} has already been selected by the community`,
       ephemeral: true,
     });
   }
@@ -30,7 +43,7 @@ const vote = async (interaction: ButtonInteraction) => {
     await db.end();
     refreshMessage(interaction.client, scheduledVoteId);
     return interaction.reply({
-      content: `❌ Removed vote for ${duckName}`,
+      content: `Your vote for ${capitalize(duckName)} has been removed`,
       ephemeral: true,
     });
   }
@@ -43,7 +56,7 @@ const vote = async (interaction: ButtonInteraction) => {
   refreshMessage(interaction.client, scheduledVoteId);
 
   await interaction.reply({
-    content: `✅ Voted for ${duckName}. You can vote for another duck if you want, or remove your vote by clicking the button again.`,
+    content: `Your vote for ${capitalize(duckName)} has been added`,
     ephemeral: true,
   });
 };
