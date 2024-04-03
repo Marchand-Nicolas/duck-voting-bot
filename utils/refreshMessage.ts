@@ -1,7 +1,9 @@
 import { Client, TextChannel } from "discord.js";
 import getDbOptions from "./getDbOptions";
 import { createConnection } from "mysql2/promise";
-import generateMessageBody from "./generateMessageBody";
+import generateMessageBody, {
+  generateEndMessageBody,
+} from "./generateMessageBody";
 import generateDuckComponents from "./generateDuckComponents";
 import getDucks from "./getDucks";
 
@@ -28,17 +30,17 @@ const refreshMessage = async (client: Client, voteId: number | string) => {
   let newMessageContent = "";
   const endDate = scheduledVote.end_date;
   if (ended) {
-    newMessageContent = `**VOTES ENDED**`;
-    newMessageContent += `\nEnded <t:${Math.floor(
-      endDate.getTime() / 1000
-    )}:R>`;
-    const { messageBody, winner } = await generateMessageBody(
+    const { messageBody, winner, equality } = await generateEndMessageBody(
       client,
       scheduledVote,
       votes
     );
+    newMessageContent = `**${winner.name} HAS BEEN CHOSEN !**\n`.toUpperCase();
     newMessageContent += messageBody;
-    newMessageContent += `\nWinner: **${winner.name}** with **${winner.votes} votes** 🎉`;
+    if (equality)
+      newMessageContent += `\n\nIt's a draw ! Let's include OutSmth's personal vote, making ${winner.name} Duck winner of the vote !`;
+
+    newMessageContent += `\n\nTotal votes: \`${votes.length}\``;
   } else {
     newMessageContent = `**Let's vote for the next duck!**
 \`(vote will end \`<t:${Math.floor(endDate.getTime() / 1000)}:R>)`;
@@ -48,7 +50,7 @@ const refreshMessage = async (client: Client, voteId: number | string) => {
       votes
     );
     newMessageContent += messageBody;
-    newMessageContent += `\n\nTotal votes: ${votes.length}`;
+    newMessageContent += `\n\nTotal votes: \`${votes.length}\``;
   }
   const duckImage = scheduledVote.image as string;
   const message = messageId ? await channel.messages.fetch(messageId) : null;
