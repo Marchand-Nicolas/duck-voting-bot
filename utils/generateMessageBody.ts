@@ -66,6 +66,8 @@ export const generateEndMessageBody = async (
       winner.name = duckName;
       winner.votes = voteAmount;
       equality = false;
+    } else if (voteAmount === winner.votes) {
+      equality = true;
     }
     const part = voteAmount / (total || 1);
     messages.push({
