@@ -6,6 +6,7 @@ import generateMessageBody, {
 } from "./generateMessageBody";
 import generateDuckComponents from "./generateDuckComponents";
 import getDucks from "./getDucks";
+import renderDuckTitle from "./renderDuckTitle";
 
 const refreshMessage = async (client: Client, voteId: number | string) => {
   const db = await createConnection(getDbOptions());
@@ -30,27 +31,28 @@ const refreshMessage = async (client: Client, voteId: number | string) => {
   let newMessageContent = "";
   const endDate = scheduledVote.end_date;
   if (ended) {
-    const { messageBody, winner, equality } = await generateEndMessageBody(
-      client,
-      scheduledVote,
-      votes
-    );
-    newMessageContent = `**${winner.name} HAS BEEN CHOSEN !**\n`.toUpperCase();
-    newMessageContent += messageBody;
+    const { messageBody, winner, equality, totalVotes } =
+      await generateEndMessageBody(client, scheduledVote, votes);
+    newMessageContent =
+      `**${winner.title} HAS BEEN CHOSEN ! 🎉**\n`.toUpperCase();
+    newMessageContent +=
+      "<:line:1227636115679346688><:line:1227636115679346688><:line:1227636115679346688>\n";
     if (equality)
-      newMessageContent += `\n\nIt's a draw ! Let's include OutSmth's personal vote, making ${winner.name} Duck winner of the vote !`;
-
-    newMessageContent += `\n\nTotal votes: \`${votes.length}\``;
+      newMessageContent += `It's a draw ! Let's include OutSmth's personal vote, making ${renderDuckTitle(
+        winner.title
+      )} winner of the vote !\n\n`;
+    newMessageContent += messageBody;
+    newMessageContent += `\n\nTotal votes: ${totalVotes}`;
   } else {
-    newMessageContent = `**Let's vote for the next duck!**
+    newMessageContent = `**LET'S VOTE FOR THE NEXT DUCK !**
 \`(vote will end \`<t:${Math.floor(endDate.getTime() / 1000)}:R>)`;
-    const { messageBody } = await generateMessageBody(
+    const { messageBody, totalVotes } = await generateMessageBody(
       client,
       scheduledVote,
       votes
     );
     newMessageContent += messageBody;
-    newMessageContent += `\n\nTotal votes: \`${votes.length}\``;
+    newMessageContent += `\n\nTotal votes: \`${totalVotes}\``;
   }
   const duckImage = scheduledVote.image as string;
   const message = messageId ? await channel.messages.fetch(messageId) : null;

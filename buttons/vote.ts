@@ -3,7 +3,8 @@ import getDbOptions from "../utils/getDbOptions";
 import { createConnection } from "mysql2/promise";
 import refreshMessage from "../utils/refreshMessage";
 import generateMessageBody from "../utils/generateMessageBody";
-import capitalize from "../utils/capitalize";
+import getDucks from "../utils/getDucks";
+import renderDuckTitle from "../utils/renderDuckTitle";
 
 const vote = async (interaction: ButtonInteraction) => {
   const interactionId = interaction.customId;
@@ -16,6 +17,15 @@ const vote = async (interaction: ButtonInteraction) => {
   if (!Array.isArray(rows)) return db.end();
   const scheduledVote = (rows as any[])[0];
   if (!scheduledVote) return db.end();
+  const ducks = getDucks(scheduledVote.ducks);
+  const duck = ducks.find((duck) => duck.name === duckName);
+  if (!duck) {
+    await db.end();
+    return interaction.reply({
+      content: "Invalid duck",
+      ephemeral: true,
+    });
+  }
   const ended = scheduledVote.ended;
   if (ended) {
     const [rows2] = await db.execute(
@@ -31,7 +41,9 @@ const vote = async (interaction: ButtonInteraction) => {
       votes
     );
     return interaction.reply({
-      content: `Vote is over, ${winner.name} has already been selected by the community`,
+      content: `Vote is over, ${renderDuckTitle(
+        winner.title
+      )} has already been selected by the community`,
       ephemeral: true,
     });
   }
@@ -43,7 +55,9 @@ const vote = async (interaction: ButtonInteraction) => {
     await db.end();
     refreshMessage(interaction.client, scheduledVoteId);
     return interaction.reply({
-      content: `Your vote for ${capitalize(duckName)} has been removed`,
+      content: `<:votered:1226889515281678356> *Your vote for ${renderDuckTitle(
+        duck.title
+      )} has been revoked*`,
       ephemeral: true,
     });
   }
@@ -56,7 +70,9 @@ const vote = async (interaction: ButtonInteraction) => {
   refreshMessage(interaction.client, scheduledVoteId);
 
   await interaction.reply({
-    content: `Your vote for ${capitalize(duckName)} has been added`,
+    content: `<:votegreen:1226889512723025922> *Your vote for ${renderDuckTitle(
+      duck.title
+    )} has been added*`,
     ephemeral: true,
   });
 };

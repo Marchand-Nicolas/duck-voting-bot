@@ -5,6 +5,7 @@ import getEmojiPairByDuckName from "./getEmojiPairByDuckName";
 import generateEmojiBar from "./generateEmojiBar";
 import getDucks from "./getDucks";
 import convertDuckNameToId from "./convertDuckNameToId";
+import renderDuckTitle from "./renderDuckTitle";
 
 const generateMessageBody = async (
   client: Client,
@@ -15,22 +16,22 @@ const generateMessageBody = async (
   let messageBody = "";
   const total = getVoteAmount(votes, votes);
   const winner = {
-    name: "",
+    title: "",
     votes: -1,
   };
   for (let index = 0; index < ducks.length; index++) {
     const duck = ducks[index];
-    const duckName = capitalize(duck.title);
-    const duckVotes = getDuckVotes(votes, convertDuckNameToId(duckName));
+    const duckTitle = capitalize(duck.title);
+    const duckVotes = getDuckVotes(votes, convertDuckNameToId(duck.name));
     const voteAmount = getVoteAmount(duckVotes, votes);
     if (voteAmount > winner.votes) {
-      winner.name = duckName;
+      winner.title = duckTitle;
       winner.votes = voteAmount;
     }
     const part = voteAmount / (total || 1);
     const emojiPair = await getEmojiPairByDuckName(
       client,
-      convertDuckNameToId(duckName)
+      convertDuckNameToId(duck.name)
     );
     const bar = generateEmojiBar(emojiPair.body, emojiPair.head, part);
     messageBody += newLine(capitalize(duck.title));
@@ -40,6 +41,7 @@ const generateMessageBody = async (
   return {
     messageBody,
     winner,
+    totalVotes: total,
   };
 };
 
@@ -52,18 +54,18 @@ export const generateEndMessageBody = async (
   let messageBody = "";
   const total = getVoteAmount(votes, votes);
   const winner = {
-    name: "",
+    title: "",
     votes: -1,
   };
   let equality = false;
   const messages = [];
   for (let index = 0; index < ducks.length; index++) {
     const duck = ducks[index];
-    const duckName = capitalize(duck.title);
-    const duckVotes = getDuckVotes(votes, convertDuckNameToId(duckName));
+    const duckTitle = capitalize(duck.title);
+    const duckVotes = getDuckVotes(votes, convertDuckNameToId(duck.title));
     const voteAmount = getVoteAmount(duckVotes, votes);
     if (voteAmount > winner.votes) {
-      winner.name = duckName;
+      winner.title = duckTitle;
       winner.votes = voteAmount;
       equality = false;
     } else if (voteAmount === winner.votes) {
@@ -72,32 +74,28 @@ export const generateEndMessageBody = async (
     const part = voteAmount / (total || 1);
     messages.push({
       voteAmount,
-      message: capitalize(duck.title) + ` (\`${Math.round(part * 100)}%)\``,
+      message: renderDuckTitle(duckTitle) + ` (${Math.round(part * 100)}%)`,
     });
   }
   messages.sort((a, b) => b.voteAmount - a.voteAmount);
-  messages.forEach((m, index) => {
-    messageBody += "\n";
+  for (let index = 0; index < messages.length; index++) {
+    const m = messages[index];
+    if (index > 0) messageBody += "\n";
     if (index === 0)
       messageBody +=
-        "✅ " +
-        m.message +
-        "        <:arrow_white:1184444766411309126>    To Be Minted";
+        "<:votegreen:1226889512723025922> **NEXT MINT :** " + m.message;
     else if (index === 1)
       messageBody +=
-        "🔁 " +
-        m.message +
-        "        <:arrow_white:1184444766411309126>    Redemption Week";
+        "<:voteorange:1226890359863382108> **REDEMPTION WEEK :** " + m.message;
     else
       messageBody +=
-        "🟥 " +
-        m.message +
-        "        <:arrow_white:1184444766411309126>    Oblivion";
-  });
+        "<:votered:1226889515281678356> **ELIMINATED :** " + m.message;
+  }
   return {
     messageBody,
     winner,
     equality,
+    totalVotes: total,
   };
 };
 
