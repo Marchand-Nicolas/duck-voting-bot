@@ -1,6 +1,7 @@
-import { CommandInteraction, TextChannel } from "discord.js";
+import { CommandInteraction } from "discord.js";
 import getDbOptions from "../utils/getDbOptions";
 import { createConnection } from "mysql2/promise";
+import refreshMessage from "../utils/refreshMessage";
 
 const deleteScheduledVote = async (interaction: CommandInteraction) => {
   if (typeof interaction.member?.permissions === "string") return;
@@ -11,14 +12,18 @@ const deleteScheduledVote = async (interaction: CommandInteraction) => {
     });
     return;
   }
-  const scheduledVoteId = interaction.options.get("vote-id")?.value as string;
+  const voteMessageUrl = interaction.options.get("vote-message-url")
+    ?.value as string;
 
   const connection = await createConnection(getDbOptions());
 
-  // Delete messages
+  const parts = voteMessageUrl.split("/");
+  const channelId = parts[parts.length - 2];
+  const messageId = parts[parts.length - 1];
+
   const [scheduledVotes] = await connection.execute(
-    `SELECT channelId, messageId FROM scheduled_votes WHERE id = ?`,
-    [scheduledVoteId]
+    `SELECT * FROM scheduled_votes WHERE channelId = ? AND messageId = ?`,
+    [channelId, messageId]
   );
   if (!Array.isArray(scheduledVotes)) {
     await interaction.reply({
@@ -39,35 +44,24 @@ const deleteScheduledVote = async (interaction: CommandInteraction) => {
 
   const scheduledVote = scheduledVotes[0] as any;
 
-  const channelId = scheduledVote.channelId;
-  if (channelId) {
-    const messageId = scheduledVote.messageId;
-    const channel = (await interaction.guild?.channels.fetch(
-      channelId
-    )) as TextChannel;
-    await channel.messages.delete(messageId).catch((e) => console.log(e));
-  }
+  const voteId = scheduledVote.id;
 
-  await connection.execute(`DELETE FROM scheduled_votes WHERE id = ?`, [
-    scheduledVoteId,
-  ]);
-  connection.end();
+  await refreshMessage(interaction.client, voteId);
 
   await interaction.reply({
-    content: "Vote deleted",
+    content: "Vote updated",
     ephemeral: true,
   });
 };
 
 module.exports = {
-  name: "delete-scheduled-vote",
-  description: "Deleted the selected scheduled vote.",
+  name: "refresh-scheduled-vote",
+  description: "Refresh the selected scheduled vote.",
   options: [
     {
-      name: "vote-id",
-      description:
-        "The id of the vote to delete. Use /list-votes to get the id.",
-      type: 4,
+      name: "vote-message-url",
+      description: "The message link of the vote to refresh.",
+      type: 3,
       required: true,
     },
   ],
