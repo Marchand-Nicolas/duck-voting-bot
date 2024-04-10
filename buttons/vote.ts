@@ -57,7 +57,7 @@ const vote = async (interaction: ButtonInteraction) => {
     return interaction.reply({
       content: `<:votered:1226889515281678356> *Your vote for **${renderDuckTitle(
         duck.title
-      ).toLowerCase()}** has been revoked*`,
+      )}** has been revoked*`,
       ephemeral: true,
     });
   }
@@ -72,7 +72,7 @@ const vote = async (interaction: ButtonInteraction) => {
   await interaction.reply({
     content: `<:votegreen:1226889512723025922> *Your vote for **${renderDuckTitle(
       duck.title
-    ).toLowerCase()}** has been added*`,
+    )}** has been added*`,
     ephemeral: true,
   });
 };
