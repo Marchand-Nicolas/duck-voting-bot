@@ -74,7 +74,7 @@ export const generateEndMessageBody = async (
     const part = voteAmount / (total || 1);
     messages.push({
       voteAmount,
-      message: renderDuckTitle(duckTitle) + ` (${Math.round(part * 100)}%)`,
+      message: renderDuckTitle(duckTitle) + ` \`(${Math.round(part * 100)}%)\``,
     });
   }
   messages.sort((a, b) => b.voteAmount - a.voteAmount);
