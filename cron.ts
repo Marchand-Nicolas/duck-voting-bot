@@ -45,17 +45,24 @@ const refresh = async (client: Client) => {
         continue;
       }
     } else {
-      const message = await channel.messages
-        .fetch(messageId)
-        .catch((e) => console.log(e));
-      if (!message) continue;
-      // Check if ended
-      if (endDate.getTime() <= now.getTime() && ended === 0) {
-        refreshMessage(client, id);
+      try {
+        const message = await channel.messages.fetch(messageId);
+        if (!message) continue;
+        // Check if ended
+        if (endDate.getTime() <= now.getTime() && ended === 0) {
+          refreshMessage(client, id);
+          await db.execute(
+            "UPDATE scheduled_votes SET ended = 1 WHERE id = ?",
+            [id]
+          );
+          continue;
+        }
+      } catch (e) {
+        console.log(e);
+        // Set as ended if message is not found
         await db.execute("UPDATE scheduled_votes SET ended = 1 WHERE id = ?", [
           id,
         ]);
-        continue;
       }
     }
   }

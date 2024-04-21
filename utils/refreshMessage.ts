@@ -31,8 +31,11 @@ const refreshMessage = async (client: Client, voteId: number | string) => {
   let newMessageContent = "";
   const endDate = scheduledVote.end_date;
   if (ended) {
-    const { messageBody, winner, equality, totalVotes } =
-      await generateEndMessageBody(client, scheduledVote, votes);
+    const { messageBody, winner, equality } = await generateEndMessageBody(
+      client,
+      scheduledVote,
+      votes
+    );
     newMessageContent =
       `<:empty:1227633616897577070>\n**${winner.title} HAS BEEN CHOSEN ! 🎉**\n`.toUpperCase();
     newMessageContent +=
@@ -42,17 +45,17 @@ const refreshMessage = async (client: Client, voteId: number | string) => {
         winner.title
       )}** winner of the vote !\n\n`;
     newMessageContent += messageBody;
-    newMessageContent += `\n\nTotal votes: ${totalVotes}`;
+    newMessageContent += `\n\nTotal votes: ${votes.length}`;
   } else {
     newMessageContent = `<:empty:1227633616897577070>\n**LET'S VOTE FOR THE NEXT DUCK !**
 \`(vote will end \`<t:${Math.floor(endDate.getTime() / 1000)}:R>)`;
-    const { messageBody, totalVotes } = await generateMessageBody(
+    const { messageBody } = await generateMessageBody(
       client,
       scheduledVote,
       votes
     );
     newMessageContent += messageBody;
-    newMessageContent += `\nTotal votes: \`${totalVotes}\``;
+    newMessageContent += `\nTotal votes: \`${votes.length}\``;
   }
   const duckImage = scheduledVote.image as string;
   const message = messageId ? await channel.messages.fetch(messageId) : null;

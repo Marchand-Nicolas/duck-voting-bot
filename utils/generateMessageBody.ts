@@ -14,7 +14,6 @@ const generateMessageBody = async (
 ) => {
   const ducks = getDucks(scheduledVote.ducks);
   let messageBody = "";
-  const total = getVoteAmount(votes, votes);
   const winner = {
     title: "",
     votes: -1,
@@ -23,12 +22,11 @@ const generateMessageBody = async (
     const duck = ducks[index];
     const duckTitle = capitalize(duck.title);
     const duckVotes = getDuckVotes(votes, convertDuckNameToId(duck.name));
-    const voteAmount = getVoteAmount(duckVotes, votes);
-    if (voteAmount > winner.votes) {
+    if (duckVotes.length > winner.votes) {
       winner.title = duckTitle;
-      winner.votes = voteAmount;
+      winner.votes = duckVotes.length;
     }
-    const part = voteAmount / (total || 1);
+    const part = duckVotes.length / (votes.length || 1);
     const emojiPair = await getEmojiPairByDuckName(
       client,
       convertDuckNameToId(duck.name)
@@ -41,7 +39,6 @@ const generateMessageBody = async (
   return {
     messageBody,
     winner,
-    totalVotes: total,
   };
 };
 
@@ -52,7 +49,6 @@ export const generateEndMessageBody = async (
 ) => {
   const ducks = getDucks(scheduledVote.ducks);
   let messageBody = "";
-  const total = getVoteAmount(votes, votes);
   const winner = {
     title: "",
     votes: -1,
@@ -63,17 +59,16 @@ export const generateEndMessageBody = async (
     const duck = ducks[index];
     const duckTitle = capitalize(duck.title);
     const duckVotes = getDuckVotes(votes, convertDuckNameToId(duck.title));
-    const voteAmount = getVoteAmount(duckVotes, votes);
-    if (voteAmount > winner.votes) {
+    if (duckVotes.length > winner.votes) {
       winner.title = duckTitle;
-      winner.votes = voteAmount;
+      winner.votes = duckVotes.length;
       equality = false;
-    } else if (voteAmount === winner.votes) {
+    } else if (duckVotes.length === winner.votes) {
       equality = true;
     }
-    const part = voteAmount / (total || 1);
+    const part = duckVotes.length / (votes.length || 1);
     messages.push({
-      voteAmount,
+      voteAmount: duckVotes.length,
       message: renderDuckTitle(duckTitle) + ` \`(${Math.round(part * 100)}%)\``,
     });
   }
@@ -95,7 +90,6 @@ export const generateEndMessageBody = async (
     messageBody,
     winner,
     equality,
-    totalVotes: total,
   };
 };
 
@@ -107,15 +101,4 @@ const newLine = (line: string) => {
 
 const getDuckVotes = (votes: Vote[], duckName: string) => {
   return votes.filter((vote) => vote.duck_name === duckName);
-};
-
-const getVoteAmount = (duckVotes: Vote[], votes: Vote[]) => {
-  // If a user has voted for multiple ducks, we need to divide the total votes by the amount of ducks they voted for
-  // We return the amount of votes for a specific duck
-  let total = 0;
-  duckVotes.forEach((vote) => {
-    const userVotes = votes.filter((v) => v.user_id === vote.user_id);
-    total += 1 / userVotes.length;
-  });
-  return total;
 };
